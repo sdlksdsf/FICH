@@ -66,6 +66,11 @@ export default function App() {
               <span>
                 <Check /> Reply in 12 hours
               </span>
+              <span>
+                <a href="/sample-report.html" target="_blank" rel="noreferrer" style={{ color: '#9aa7b8' }}>
+                  See a finished report →
+                </a>
+              </span>
             </div>
           </div>
 
@@ -233,10 +238,30 @@ export default function App() {
             </div>
           ))}
         </div>
-        <p style={{ color: '#6d7b8d', fontSize: 13, marginTop: 18 }}>
-          50% to start, 50% when it is live. If I cannot get your app launch-safe, you do not pay the second half
-          and I tell you plainly why.
-        </p>
+        <div
+          style={{
+            display: 'flex',
+            gap: 14,
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexWrap: 'wrap',
+            marginTop: 18,
+          }}
+        >
+          <p style={{ color: '#6d7b8d', fontSize: 13, margin: 0 }}>
+            50% to start, 50% when it is live. If I cannot get your app launch-safe, you do not pay the second
+            half and I tell you plainly why.
+          </p>
+          <a
+            href="/sample-report.html"
+            target="_blank"
+            rel="noreferrer"
+            className="btn btn-ghost"
+            style={{ fontSize: 13.5, padding: '10px 14px' }}
+          >
+            See a real audit report →
+          </a>
+        </div>
       </Section>
 
       <div className="divide" />
