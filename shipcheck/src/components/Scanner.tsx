@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { scan, VERDICT_COPY, type Report } from '../scan'
+import { encodeReport, scan, VERDICT_COPY, type Report } from '../scan'
 import { FindingCard, Gauge } from './ui'
 
 const SAMPLE = `// app/page.tsx — typical AI-built checkout page
@@ -49,6 +49,31 @@ export default function Scanner({ onFound }: { onFound?: (r: Report) => void }) 
   const [text, setText] = useState('')
   const [report, setReport] = useState<Report | null>(null)
   const [busy, setBusy] = useState(false)
+  const [shareState, setShareState] = useState<'idle' | 'copied' | 'manual'>('idle')
+
+  function shareLink(r: Report): string {
+    const base = window.location.origin + window.location.pathname
+    return `${base}#r=${encodeReport(r)}`
+  }
+
+  async function share(r: Report) {
+    const url = shareLink(r)
+    try {
+      await navigator.clipboard.writeText(url)
+      setShareState('copied')
+      setTimeout(() => setShareState('idle'), 2600)
+      return
+    } catch {
+      /* clipboard blocked (permissions or insecure context) — fall through */
+    }
+    // Last resort: put the link in the address bar so it can be copied by hand.
+    try {
+      window.history.replaceState(null, '', `#r=${encodeReport(r)}`)
+    } catch {
+      /* ignore */
+    }
+    setShareState('manual')
+  }
 
   const canScan = text.trim().length >= 40
 
@@ -192,6 +217,28 @@ export default function Scanner({ onFound }: { onFound?: (r: Report) => void }) 
             {report.findings.map((f, i) => (
               <FindingCard key={f.id} f={f} index={i} />
             ))}
+          </div>
+
+          <div
+            className="card"
+            style={{ padding: 18, marginTop: 20, display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}
+          >
+            <div style={{ flex: 1, minWidth: 240 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 650, marginBottom: 3 }}>
+                Found something you did not know about?
+              </div>
+              <div style={{ fontSize: 13, color: '#9aa7b8' }}>
+                Share the report with your co-founder or your builder. The link contains the findings only — not
+                your code, not your keys, not the snippets.
+              </div>
+            </div>
+            <button className="btn btn-ghost" onClick={() => share(report)}>
+              {shareState === 'copied'
+                ? '✓ Link copied'
+                : shareState === 'manual'
+                  ? 'Link is in the address bar'
+                  : 'Copy shareable report'}
+            </button>
           </div>
 
           <div className="card" style={{ padding: 22, marginTop: 20 }}>

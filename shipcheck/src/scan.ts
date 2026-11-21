@@ -34,7 +34,10 @@ export interface Report {
   verdict: 'not-shippable' | 'risky' | 'close' | 'ship-ready'
 }
 
-const SEV_WEIGHT: Record<Severity, number> = {
+/** Lookup used to rebuild a finding from a shared link (id-only, no code). */
+export const RULE_BY_ID = new Map<string, Rule>()
+
+export const SEV_WEIGHT: Record<Severity, number> = {
   blocker: 26,
   high: 14,
   medium: 7,
@@ -414,6 +417,84 @@ function atobSafe(s: string): string | null {
 function pick(n: number[]): number[] | null {
   const u = [...new Set(n)]
   return u.length ? u.slice(0, 8) : null
+}
+
+for (const r of RULES) RULE_BY_ID.set(r.id, r)
+
+// ── Shareable reports ───────────────────────────────────────────────────────
+// A shared link carries only WHICH rules fired and the score — never the code
+// that was pasted, never the evidence snippets. That keeps the sharer's secrets
+// out of the URL, keeps the link short, and still gives the recipient a real,
+// useful report with the same fixes.
+
+const SEV_CODE: Record<Severity, string> = { blocker: 'b', high: 'h', medium: 'm', low: 'l' }
+const CODE_SEV: Record<string, Severity> = { b: 'blocker', h: 'high', m: 'medium', l: 'low' }
+
+function toBase64Url(s: string): string {
+  const bytes = new TextEncoder().encode(s)
+  let bin = ''
+  for (const b of bytes) bin += String.fromCharCode(b)
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+}
+
+function fromBase64Url(s: string): string | null {
+  try {
+    const b64 = s.replace(/-/g, '+').replace(/_/g, '/')
+    const bin = atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4))
+    const bytes = Uint8Array.from(bin, (c) => c.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
+  } catch {
+    return null
+  }
+}
+
+/** Compact, private, URL-safe encoding of a report. */
+export function encodeReport(r: Report): string {
+  const parts = r.findings.map((f) => `${f.id}:${SEV_CODE[f.severity]}`).join(',')
+  return toBase64Url(`1|${r.score}|${parts}`)
+}
+
+/** Rebuild a report from a shared link. Returns null if the link is not one of ours. */
+export function decodeReport(token: string): Report | null {
+  const raw = fromBase64Url(token)
+  if (!raw) return null
+  const [v, scoreStr, list = ''] = raw.split('|')
+  if (v !== '1') return null
+
+  const findings: Finding[] = []
+  for (const entry of list.split(',')) {
+    if (!entry) continue
+    const [id, code] = entry.split(':')
+    const rule = RULE_BY_ID.get(id)
+    const severity = CODE_SEV[code]
+    if (!rule || !severity) continue
+    findings.push({
+      id: rule.id,
+      title: rule.title,
+      severity,
+      category: rule.category,
+      what: rule.what,
+      why: rule.why,
+      fix: rule.fix,
+    })
+  }
+
+  const order: Severity[] = ['blocker', 'high', 'medium', 'low']
+  findings.sort((a, b) => order.indexOf(a.severity) - order.indexOf(b.severity))
+
+  const score = Math.max(0, Math.min(100, Number(scoreStr) || 0))
+  const blockers = findings.filter((f) => f.severity === 'blocker').length
+  const high = findings.filter((f) => f.severity === 'high').length
+
+  return {
+    findings,
+    score,
+    blockers,
+    high,
+    scannedChars: 0,
+    generatedAt: new Date().toISOString(),
+    verdict: score < 45 ? 'not-shippable' : score < 70 ? 'risky' : score < 90 ? 'close' : 'ship-ready',
+  }
 }
 
 export function scan(input: string): Report {
