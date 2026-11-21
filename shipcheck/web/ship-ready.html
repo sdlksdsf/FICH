@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ship-Ready — The AI-App Launch Checklist</title>
+<meta name="description" content="The 18 checks that separate a demo from an app that can take money. Written for Lovable, Bolt, Cursor, Replit and v0 builds.">
+<style>
+  :root{
+    --ink:#08090c; --ink2:#0e1116; --card:#12161d; --line:#212833; --line2:#2d3745;
+    --text:#eef2f8; --muted:#9aa8bb; --dim:#6a7889;
+    --ok:#33d17a; --bad:#ff5263; --warn:#ffb020; --accent:#4c8dff; --accent2:#8b5cff;
+    --paper:#fff; --p-ink:#101419; --p-muted:#57616f; --p-line:#e2e8f1;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--ink); color:var(--text); line-height:1.62;
+    font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{width:min(920px,100% - 36px); margin:0 auto; background:var(--paper); color:var(--p-ink);
+    padding:64px 68px; border-radius:4px; margin-top:28px; margin-bottom:28px}
+  .toolbar{width:min(920px,100% - 36px); margin:0 auto; padding:18px 0 0; display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+  .toolbar p{margin:0; color:var(--muted); font-size:13px}
+  .btn{display:inline-flex; align-items:center; gap:8px; border:0; border-radius:9px; cursor:pointer;
+    background:linear-gradient(140deg,var(--accent),var(--accent2)); color:#fff; font-weight:680;
+    font-size:14px; padding:10px 17px; font-family:inherit; text-decoration:none}
+
+  h1{font-size:40px; line-height:1.08; letter-spacing:-.04em; margin:26px 0 10px; font-weight:800}
+  .sub{font-size:17px; color:var(--p-muted); margin:0 0 30px; max-width:60ch}
+  .brand{display:flex; align-items:center; gap:10px; font-weight:780; letter-spacing:-.02em; font-size:15px;
+    padding-bottom:24px; border-bottom:1px solid var(--p-line)}
+  .mark{width:27px; height:27px; border-radius:8px; display:grid; place-items:center; font-size:14px;
+    background:linear-gradient(140deg,var(--accent),var(--accent2)); color:#fff}
+
+  h2{font-size:23px; letter-spacing:-.03em; margin:46px 0 6px; font-weight:780; padding-top:8px}
+  h2 .n{color:#b9c4d4; font-weight:700; margin-right:10px}
+  .h2sub{font-size:14.5px; color:var(--p-muted); margin:0 0 18px}
+  .rule{height:1px; background:var(--p-line); margin:52px 0 0}
+
+  .chk{border:1px solid var(--p-line); border-radius:11px; padding:20px 22px; margin-bottom:13px;
+    break-inside:avoid}
+  .chk.b{border-left:3px solid #d6223c}
+  .chk.h{border-left:3px solid #d98b00}
+  .chk.m{border-left:3px solid var(--accent)}
+  .chk-head{display:flex; gap:12px; align-items:baseline; margin-bottom:4px}
+  .tag{font-size:9.5px; font-weight:850; letter-spacing:.09em; text-transform:uppercase; padding:3px 8px;
+    border-radius:4px; white-space:nowrap; flex:0 0 auto}
+  .tag.b{background:#fdecee; color:#b3253c}
+  .tag.h{background:#fff6e3; color:#8a5c00}
+  .tag.m{background:#eef4ff; color:#2b5fb3}
+  .chk h3{font-size:16.5px; margin:0; letter-spacing:-.015em; font-weight:730; flex:1}
+  .num{font-size:12px; color:#9aa5b4; font-variant-numeric:tabular-nums}
+  .chk p{margin:0; font-size:14.5px; color:#33405a}
+  .lbl{font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; color:#8b97a6;
+    margin:13px 0 4px}
+  .fix{background:#f0fdf5; border-left:2px solid #1c9e64; border-radius:0 7px 7px 0; padding:10px 13px;
+    font-size:14px; color:#14532d}
+  .time{display:inline-block; margin-top:9px; font-size:12px; font-weight:700; color:#8b5c00;
+    background:#fff6e3; border:1px solid #f5e0b4; padding:2px 8px; border-radius:5px}
+
+  .panel{border:1px solid #cfe0f8; background:#f5f9ff; border-radius:12px; padding:26px 28px; margin-top:34px}
+  .panel h3{margin:0 0 8px; font-size:18px; letter-spacing:-.02em}
+  .panel p{margin:0 0 10px; font-size:14.5px; color:#2b3543}
+  .panel ul{margin:8px 0 0; padding-left:20px; font-size:14.5px; color:#2b3543}
+  .panel li{margin-bottom:6px}
+  .sig{margin-top:48px; padding-top:20px; border-top:1px solid var(--p-line); font-size:13px;
+    color:var(--p-muted); display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap}
+
+  @media print{
+    body{background:#fff}
+    .toolbar{display:none}
+    .page{width:100%; margin:0; padding:0; border-radius:0}
+    .chk,.panel{break-inside:avoid}
+    h2{break-after:avoid}
+  }
+  @page{margin:16mm}
+  @media(max-width:700px){
+    .page{padding:38px 24px}
+    h1{font-size:31px}
+  }
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <a class="btn" href="#" onclick="window.print();return false">Save as PDF</a>
+  <p>18 checks. Read it once, fix what you fail.</p>
+</div>
+
+<div class="page">
+
+  <div class="brand"><span class="mark">🛡️</span> ShipCheck</div>
+
+  <h1>Ship-Ready</h1>
+  <p class="sub">
+    The 18 checks that separate a demo from an app that can take money.
+    Written for anything built with Lovable, Bolt, Cursor, Replit, v0 or an AI agent
+    that wrote most of the code before you read it.
+  </p>
+
+  <div class="panel" style="margin-top:0; border-color:#f5e0b4; background:#fffdf6">
+    <h3 style="margin-bottom:6px">Why these 18</h3>
+    <p style="margin:0">
+      Every item here is a failure that <b>does not appear in testing</b>, because testing does not
+      involve a real card, a hard refresh, a second user, or a stranger reading your JavaScript.
+      They show up in week one of real traffic, when they are expensive.
+    </p>
+  </div>
+
+  <div class="rule"></div>
+
+  <h2><span class="n">01–04</span> The blockers</h2>
+  <p class="h2sub">Each of these loses you money or data. Fix these before you take a single payment.</p>
+
+  <div class="chk b">
+    <div class="chk-head"><span class="tag b">Blocker</span><h3>Payment confirms nothing</h3><span class="num">01</span></div>
+    <p>The checkout completes and the card is charged, but no entitlement is written. The customer pays and gets nothing, and you find out from a support email.</p>
+    <div class="lbl">How to check</div>
+    <p>Look at your webhook handler. Does it verify the signature, then write a row, then return 200 — in that order? If fulfilment happens in the browser on a "success" redirect, you have this bug.</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Fulfil on the webhook, never on the redirect. Verify the signature, make the write idempotent with the event ID as a unique key, and return 200 even if the row already exists.</div>
+    <span class="time">~60 min</span>
+  </div>
+
+  <div class="chk b">
+    <div class="chk-head"><span class="tag b">Blocker</span><h3>Page 404s on hard refresh</h3><span class="num">02</span></div>
+    <p>Client-side routing works while you click around. Paste the same URL into a new tab and it breaks, so every link you share with a customer is a dead end.</p>
+    <div class="lbl">How to check</div>
+    <p>Open a deep route in a fresh incognito tab. Then send it to yourself. If it only works after navigating from the homepage, it fails.</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Add a catch-all rewrite to <code>index.html</code> on your host, and make sure your API and asset paths are excluded so they are not swallowed.</div>
+    <span class="time">10 min</span>
+  </div>
+
+  <div class="chk b">
+    <div class="chk-head"><span class="tag b">Blocker</span><h3>A secret is in the browser bundle</h3><span class="num">03</span></div>
+    <p>A service-role key, a Stripe secret, or an admin token got imported somewhere reachable by the client. Anyone can read it and act as you.</p>
+    <div class="lbl">How to check</div>
+    <p>Build for production, open the output JS, and search for <code>service_role</code>, <code>sk_</code>, <code>secret</code>. Anything that turns up is public.</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Rotate the key first — assume it is compromised. Move the call to a server function. Keep only the publishable key in the client.</div>
+    <span class="time">45 min</span>
+  </div>
+
+  <div class="chk b">
+    <div class="chk-head"><span class="tag b">Blocker</span><h3>Protected pages render before auth resolves</h3><span class="num">04</span></div>
+    <p>The dashboard paints for a moment before the session check completes. On a slow connection that moment is long enough to read, screenshot, or interact with.</p>
+    <div class="lbl">How to check</div>
+    <p>Throttle the network to slow 3G, sign out, and load a protected route directly. Watch whether any real content appears.</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Gate on an explicit loading state that renders null. Redirect only after the auth state is known, not while it is still resolving.</div>
+    <span class="time">30 min</span>
+  </div>
+
+  <div class="rule"></div>
+
+  <h2><span class="n">05–12</span> The silent failures</h2>
+  <p class="h2sub">Nothing crashes. Things just quietly do not work, which is worse.</p>
+
+  <div class="chk h">
+    <div class="chk-head"><span class="tag h">High</span><h3>Row-level security is off</h3><span class="num">05</span></div>
+    <p>Every table readable by any authenticated user. One signup and someone can read your whole customer base.</p>
+    <div class="lbl">How to check</div>
+    <p>Query a table with an anonymous key. If you get rows back, RLS is off or the policy is <code>true</code>.</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Enable RLS on every table, then add per-user policies. Default deny, then open exactly what each role needs.</div>
+    <span class="time">2–4 hrs</span>
+  </div>
+
+  <div class="chk h">
+    <div class="chk-head"><span class="tag h">High</span><h3>Env vars missing in production</h3><span class="num">06</span></div>
+    <p>Works locally because your <code>.env</code> has it. Deployed, it is <code>undefined</code>, and the feature fails silently.</p>
+    <div class="lbl">How to check</div>
+    <p>List every environment variable the code reads. Compare against what the host actually has set.</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Fail loudly at boot if a required variable is absent. A crash on deploy beats a feature that half-works.</div>
+    <span class="time">30 min</span>
+  </div>
+
+  <div class="chk h">
+    <div class="chk-head"><span class="tag h">High</span><h3>localhost is still in the shipped code</h3><span class="num">07</span></div>
+    <p>An API base URL or a redirect still points at your machine. It works for you and for nobody else.</p>
+    <div class="lbl">How to check</div>
+    <p>Search the source for <code>localhost</code> and <code>127.0.0.1</code>.</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Move it to an env var with the production value as the default, and delete the fallback.</div>
+    <span class="time">15 min</span>
+  </div>
+
+  <div class="chk h">
+    <div class="chk-head"><span class="tag h">High</span><h3>Failed writes look like success</h3><span class="num">08</span></div>
+    <p>The insert throws, nothing catches it, and the UI says "Saved". Data disappears and the user trusts it.</p>
+    <div class="lbl">How to check</div>
+    <p>Find every write. Is the error handled, and does the UI change only after it resolves?</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Check the error on every mutation before showing success. Roll back optimistic UI on failure.</div>
+    <span class="time">1–2 hrs</span>
+  </div>
+
+  <div class="chk h">
+    <div class="chk-head"><span class="tag h">High</span><h3>No rate limit on anything that costs money</h3><span class="num">09</span></div>
+    <p>An AI endpoint, a signup, or an email sender with no cap. One script drains your credits overnight.</p>
+    <div class="lbl">How to check</div>
+    <p>Find every route that calls a paid API or sends mail. Does it have a per-user or per-IP limit?</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Add a counter keyed by user ID with a short window, and a hard monthly ceiling per account.</div>
+    <span class="time">1 hr</span>
+  </div>
+
+  <div class="chk h">
+    <div class="chk-head"><span class="tag h">High</span><h3>Nobody can recover a password</h3><span class="num">10</span></div>
+    <p>The reset flow was never wired to a real mail provider, so it silently does nothing. You lose the customer permanently.</p>
+    <div class="lbl">How to check</div>
+    <p>Run a reset for a real address you control. Did the mail actually arrive?</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Send through a transactional provider with a verified domain. Test the full loop, including the link.</div>
+    <span class="time">1 hr</span>
+  </div>
+
+  <div class="chk h">
+    <div class="chk-head"><span class="tag h">High</span><h3>No error boundary</h3><span class="num">11</span></div>
+    <p>One malformed API response and the whole app goes white. The user has no idea whether they were charged.</p>
+    <div class="lbl">How to check</div>
+    <p>Throw deliberately inside a component in staging.</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Wrap the tree in an error boundary that renders a real page with a way back.</div>
+    <span class="time">30 min</span>
+  </div>
+
+  <div class="chk h">
+    <div class="chk-head"><span class="tag h">High</span><h3>Schema only exists in someone's dashboard</h3><span class="num">12</span></div>
+    <p>Tables were created by clicking. There are no migrations, so a restore loses structure and nobody can state the real schema.</p>
+    <div class="lbl">How to check</div>
+    <p>Is there a migrations folder that matches production?</p>
+    <div class="lbl">Fix</div>
+    <div class="fix">Dump the schema, commit it, apply through CI from now on.</div>
+    <span class="time">30 min</span>
+  </div>
+
+  <div class="rule"></div>
+
+  <h2><span class="n">13–18</span> The ones that cost you trust</h2>
+  <p class="h2sub">Not fatal, but they are why someone decides not to come back.</p>
+
+  <div class="chk m">
+    <div class="chk-head"><span class="tag m">Medium</span><h3>Session token in localStorage</h3><span class="num">13</span></div>
+    <p>Any injected script reads it and takes the account. Move it to an httpOnly cookie.</p>
+    <span class="time">40 min</span>
+  </div>
+
+  <div class="chk m">
+    <div class="chk-head"><span class="tag m">Medium</span><h3>Secrets printed to logs</h3><span class="num">14</span></div>
+    <p>A console log dumps an env value into a third-party logging service. Log a redacted shape instead.</p>
+    <span class="time">15 min</span>
+  </div>
+
+  <div class="chk m">
+    <div class="chk-head"><span class="tag m">Medium</span><h3>No loading or empty states</h3><span class="num">15</span></div>
+    <p>Blank screens read as broken. A skeleton and a real empty state cost an hour and change the first impression entirely.</p>
+    <span class="time">1 hr</span>
+  </div>
+
+  <div class="chk m">
+    <div class="chk-head"><span class="tag m">Medium</span><h3>Broken links and dead buttons</h3><span class="num">16</span></div>
+    <p>Every CTA that 404s is a customer who was ready to give you money and could not. Click all of them, signed in and signed out.</p>
+    <span class="time">20 min</span>
+  </div>
+
+  <div class="chk m">
+    <div class="chk-head"><span class="tag m">Medium</span><h3>No page titles or meta</h3><span class="num">17</span></div>
+    <p>Every shared link renders as an untitled grey box. Fix the title and OG tags; it is the cheapest credibility you can buy.</p>
+    <span class="time">20 min</span>
+  </div>
+
+  <div class="chk m">
+    <div class="chk-head"><span class="tag m">Medium</span><h3>Nobody tested it on a phone</h3><span class="num">18</span></div>
+    <p>Most of your traffic will be mobile. Check the flow at 375px wide, starting from a cold load.</p>
+    <span class="time">30 min</span>
+  </div>
+
+  <div class="panel">
+    <h3>The order that matters</h3>
+    <p>If you fix nothing else, fix <b>01 to 04</b>. Those four are the difference between an app that can hold a customer's money and one that cannot.</p>
+    <ul>
+      <li><b>01</b> before you take a single payment</li>
+      <li><b>03</b> before the key has been public for an hour longer than it already has</li>
+      <li><b>02</b> before you share one more link</li>
+      <li><b>05</b> before your second user signs up</li>
+    </ul>
+  </div>
+
+  <div class="panel" style="border-color:#e2e8f1; background:#fafbfd">
+    <h3>When you want someone else to do it</h3>
+    <p style="margin-bottom:6px">
+      I run fixed-scope audits on this exact list. You get a ranked report with the evidence from
+      <b>your</b> code, not a generic checklist — and you see every finding before you pay.
+    </p>
+    <p style="margin:0">
+      Sample report, no email wall:
+      <a href="https://cvprinxmfqguqezaylhk.supabase.co/functions/v1/shipcheck/sample-report.html">https://cvprinxmfqguqezaylhk.supabase.co/functions/v1/shipcheck/sample-report.html</a>
+    </p>
+  </div>
+
+  <div class="sig">
+    <div><b style="color:#12161b">Alex Frands</b> · ShipCheck</div>
+    <div>Ship-Ready · v1 · 2026</div>
+  </div>
+
+</div>
+
+</body>
+</html>
