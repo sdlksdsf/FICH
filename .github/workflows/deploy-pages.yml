@@ -1,11 +1,11 @@
 name: Deploy ShipCheck to GitHub Pages
 
+# Only runs on main. Pages is not enabled on this repo yet, so running on every
+# branch just produced a failure email per push with no benefit.
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
-      - 'arena/**'
+    branches: [main]
     paths:
       - 'shipcheck/**'
       - '.github/workflows/deploy-pages.yml'
@@ -41,7 +41,6 @@ jobs:
         run: npx tsc -b
 
       - name: Build
-        # Project pages are served from /<repo>/, so assets need that base path.
         env:
           VITE_BASE: /${{ github.event.repository.name }}/
         run: npm run build

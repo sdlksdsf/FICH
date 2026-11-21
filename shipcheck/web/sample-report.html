@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ShipCheck — Launch Readiness Report (sample)</title>
+<style>
+  :root{
+    --ink:#0b0d10; --ink2:#14181d; --line:#232a33; --text:#e8edf4; --muted:#9aa7b8;
+    --dim:#6d7b8d; --bad:#ff4d5e; --warn:#ffb020; --ok:#2fd47f; --accent:#4c8dff;
+    --paper:#fff; --paper-ink:#12161b; --paper-muted:#5b6675; --paper-line:#dfe5ee;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--ink); color:var(--text); line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  .page{
+    width:min(900px,100% - 32px); margin:0 auto; background:var(--paper); color:var(--paper-ink);
+    padding:56px 60px; border-radius:4px;
+  }
+  .toolbar{
+    width:min(900px,100% - 32px); margin:0 auto; padding:18px 0; display:flex;
+    gap:12px; align-items:center; flex-wrap:wrap;
+  }
+  .toolbar p{margin:0;color:var(--muted);font-size:13px}
+  .btn{
+    display:inline-flex;align-items:center;gap:8px;border:0;border-radius:9px;cursor:pointer;
+    background:linear-gradient(140deg,#4c8dff,#7c5cff);color:#fff;font-weight:650;
+    font-size:14px;padding:10px 16px;font-family:inherit;text-decoration:none;
+  }
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text)}
+
+  /* ── cover ── */
+  .brand{display:flex;align-items:center;gap:10px;font-weight:750;letter-spacing:-.02em;font-size:16px;color:var(--paper-ink)}
+  .mark{width:28px;height:28px;border-radius:8px;display:grid;place-items:center;
+    background:linear-gradient(140deg,#4c8dff,#7c5cff);color:#fff;font-size:15px}
+  .conf{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#b0364a;
+    border:1px solid #f0c2c8;background:#fdf2f4;padding:4px 9px;border-radius:5px;margin-left:auto}
+  .cover-head{display:flex;align-items:center;gap:12px;padding-bottom:26px;border-bottom:1px solid var(--paper-line)}
+  h1{font-size:34px;line-height:1.12;letter-spacing:-.03em;margin:30px 0 8px;font-weight:790}
+  .sub{font-size:16px;color:var(--paper-muted);margin:0 0 26px}
+  .meta{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--paper-line);
+    border:1px solid var(--paper-line);border-radius:10px;overflow:hidden;margin-bottom:28px}
+  .meta div{background:#fff;padding:13px 15px}
+  .meta dt{font-size:10px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:#8b97a6;margin-bottom:3px}
+  .meta dd{margin:0;font-size:13.5px;font-weight:650}
+
+  /* ── score ── */
+  .score{display:flex;gap:26px;align-items:center;border:1px solid var(--paper-line);
+    border-radius:12px;padding:22px 24px;background:#fbfcfe;margin-bottom:8px}
+  .ring{position:relative;width:96px;height:96px;flex:0 0 96px}
+  .ring .n{position:absolute;inset:0;display:grid;place-items:center;font-size:27px;font-weight:800;letter-spacing:-.04em;color:#c0203a}
+  .verdict{font-size:11px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:#c0203a}
+  .verdict-t{font-size:23px;font-weight:770;letter-spacing:-.02em;margin:4px 0 6px}
+  .verdict-d{margin:0;font-size:14px;color:var(--paper-muted);max-width:520px}
+  .counts{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .cnt{font-size:11.5px;font-weight:750;padding:3px 9px;border-radius:5px}
+  .cnt.b{background:#fdecee;color:#b3253c;border:1px solid #f6ccd3}
+  .cnt.h{background:#fff6e3;color:#8a5c00;border:1px solid #f5e0b4}
+  .cnt.m{background:#eef4ff;color:#2b5fb3;border:1px solid #cfdff8}
+
+  h2{font-size:19px;letter-spacing:-.02em;margin:34px 0 4px;font-weight:760}
+  .h2sub{font-size:13.5px;color:var(--paper-muted);margin:0 0 16px}
+  .rule{height:1px;background:var(--paper-line);margin:34px 0}
+
+  /* ── findings ── */
+  .finding{border:1px solid var(--paper-line);border-radius:10px;padding:18px 20px;margin-bottom:12px}
+  .finding.blocker{border-left:3px solid var(--bad)}
+  .finding.high{border-left:3px solid var(--warn)}
+  .finding.medium{border-left:3px solid var(--accent)}
+  .f-head{display:flex;gap:10px;align-items:flex-start}
+  .tag{font-size:9.5px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;
+    padding:3px 7px;border-radius:4px;height:fit-content;margin-top:2px;white-space:nowrap}
+  .tag.blocker{background:#fdecee;color:#b3253c}
+  .tag.high{background:#fff6e3;color:#8a5c00}
+  .tag.medium{background:#eef4ff;color:#2b5fb3}
+  .f-title{font-size:15.5px;font-weight:700;letter-spacing:-.01em;margin:0;flex:1}
+  .f-num{font-size:12px;color:#9aa5b4;font-variant-numeric:tabular-nums}
+  .f-row{display:grid;grid-template-columns:84px 1fr;gap:12px;margin-top:10px;font-size:13.5px}
+  .f-row dt{font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#8b97a6;padding-top:2px}
+  .f-row dd{margin:0;color:#2b3543}
+  code{font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:12px;
+    background:#f2f5f9;border:1px solid #e3e9f1;border-radius:4px;padding:1px 5px;color:#33405a;
+    word-break:break-all}
+  .ev{margin-top:10px;background:#0f1419;color:#9fb0c4;border-radius:7px;padding:10px 12px;
+    font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:11.5px;
+    white-space:pre-wrap;word-break:break-all}
+  .fix{margin-top:10px;background:#f0fdf5;border-left:2px solid #1c9e64;border-radius:0 7px 7px 0;
+    padding:9px 12px;font-size:13px;color:#14532d}
+  .fix b{font-weight:750}
+
+  /* ── plan ── */
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+  th{text-align:left;font-size:10px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;
+    color:#8b97a6;border-bottom:1px solid var(--paper-line);padding:0 8px 8px}
+  td{padding:10px 8px;border-bottom:1px solid #eef2f7;vertical-align:top;color:#2b3543}
+  td:first-child{white-space:nowrap;font-weight:650}
+  .pill-b{font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;background:#fdecee;color:#b3253c}
+  .pill-h{font-size:10px;font-weight:800;padding:2px 6px;border-radius:4px;background:#fff6e3;color:#8a5c00}
+
+  .callout{border:1px solid #cfe0f8;background:#f5f9ff;border-radius:11px;padding:20px 22px;margin-top:26px}
+  .callout h3{margin:0 0 6px;font-size:16px;letter-spacing:-.01em}
+  .callout p{margin:0 0 12px;font-size:13.5px;color:#2b3543}
+  .price{display:flex;align-items:baseline;gap:10px;margin-bottom:4px}
+  .price b{font-size:30px;letter-spacing:-.04em}
+  .price s{color:#8b97a6;font-size:14px}
+  .sig{margin-top:34px;padding-top:18px;border-top:1px solid var(--paper-line);
+    font-size:12.5px;color:var(--paper-muted);display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  /* ── print ── */
+  @media print{
+    body{background:#fff}
+    .toolbar{display:none}
+    .page{width:100%;padding:0;border-radius:0}
+    .finding,.score,.callout,.meta{break-inside:avoid}
+    h2{break-after:avoid}
+    .ev{background:#f4f6f9;color:#33405a}
+  }
+  @page{margin:16mm}
+</style>
+</head>
+<body>
+
+<div class="toolbar">
+  <a class="btn" href="#" onclick="window.print();return false">Save as PDF</a>
+  <a class="btn ghost" href="https://shipcheck-liard.vercel.app">← Back to ShipCheck</a>
+  <p>This is a real, complete sample report — every finding below comes from an actual AI-built codebase pattern.</p>
+</div>
+
+<div class="page">
+
+  <div class="cover-head">
+    <div class="brand"><span class="mark">🛡️</span> ShipCheck</div>
+    <div class="conf">Confidential · Client copy</div>
+  </div>
+
+  <h1>Launch Readiness Report</h1>
+  <p class="sub">HappyPath — AI coach for habit tracking · built with Lovable, deployed on Vercel</p>
+
+  <dl class="meta">
+    <div><dt>Report</dt><dd>SC-2026-0142</dd></div>
+    <div><dt>Prepared</dt><dd>21 Nov 2026</dd></div>
+    <div><dt>Reviewer</dt><dd>Alex Frands</dd></div>
+    <div><dt>Scope</dt><dd>Full codebase + live app</dd></div>
+  </dl>
+
+  <div class="score">
+    <div class="ring">
+      <svg width="96" height="96" viewBox="0 0 96 96">
+        <circle cx="48" cy="48" r="40" stroke="#e6ebf2" stroke-width="9" fill="none"/>
+        <circle cx="48" cy="48" r="40" stroke="#e0455c" stroke-width="9" fill="none"
+                stroke-linecap="round" stroke-dasharray="251" stroke-dashoffset="176"
+                transform="rotate(-90 48 48)"/>
+      </svg>
+      <div class="n">31</div>
+    </div>
+    <div>
+      <div class="verdict">Verdict</div>
+      <div class="verdict-t">Do not take payments yet</div>
+      <p class="verdict-d">Three issues in this build will lose money or data the first day a real
+        customer touches them. All three are cheap to fix now and expensive to discover in production.</p>
+      <div class="counts">
+        <span class="cnt b">4 blockers</span>
+        <span class="cnt h">3 high</span>
+        <span class="cnt m">2 medium</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <h2>What we found</h2>
+  <p class="h2sub">Ordered by what it costs you if a stranger finds it before you fix it.</p>
+
+  <div class="finding blocker">
+    <div class="f-head">
+      <span class="tag blocker">Blocker</span>
+      <p class="f-title">Supabase <code>service_role</code> key is compiled into the browser bundle</p>
+      <span class="f-num">01</span>
+    </div>
+    <dl class="f-row">
+      <dt>Found</dt>
+      <dd><code>src/lib/supabase.ts</code> line 6 — the client is created with a JWT whose payload decodes to <code>"role":"service_role"</code>. It ships in <code>/assets/index-*.js</code>.</dd>
+      <dt>Impact</dt>
+      <dd>The key bypasses every Row Level Security policy by design. Anyone who opens DevTools on your
+        homepage can read, edit and delete every user, message and row in your database — no login needed.
+        This is the most severe class of leak in AI-built apps, and it is not detectable from your UI.</dd>
+      <dt>Evidence</dt>
+      <dd><div class="ev">const supabase = createClient(URL, 'eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIn0.••••••••')</div></dd>
+      <dt>Fix</dt>
+      <dd><div class="fix"><b>Rotate now</b> (Supabase → Settings → API → Reset), then move every privileged
+        call to a server function. The browser may only ever hold the anon key. <b>Time: 25 minutes.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="finding blocker">
+    <div class="f-head">
+      <span class="tag blocker">Blocker</span>
+      <p class="f-title">Stripe webhook grants access without verifying the signature</p>
+      <span class="f-num">02</span>
+    </div>
+    <dl class="f-row">
+      <dt>Found</dt>
+      <dd><code>api/stripe/webhook.ts</code> — the handler parses the JSON body and acts on
+        <code>checkout.session.completed</code> directly. There is no <code>constructEvent</code> call.</dd>
+      <dt>Impact</dt>
+      <dd>Anyone who finds the endpoint can POST a fabricated "payment succeeded" event and receive Pro
+        access for free. Separately, because the handler is not idempotent, Stripe's automatic retries can
+        grant the same purchase twice while the second real payment fails silently.</dd>
+      <dt>Fix</dt>
+      <dd><div class="fix">Verify with <code>stripe.webhooks.constructEvent(rawBody, sig, secret)</code>,
+        reject on mismatch, and key the grant on <code>event.id</code> so a retry cannot double-grant.
+        <b>Time: 40 minutes.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="finding blocker">
+    <div class="f-head">
+      <span class="tag blocker">Blocker</span>
+      <p class="f-title">Every table was created with Row Level Security off</p>
+      <span class="f-num">03</span>
+    </div>
+    <dl class="f-row">
+      <dt>Found</dt>
+      <dd>7 tables (<code>profiles</code>, <code>habits</code>, <code>entries</code>, <code>subscriptions</code>,
+        <code>messages</code>, <code>feedback</code>, <code>events</code>) exist with no
+        <code>ENABLE ROW LEVEL SECURITY</code> and no policies.</dd>
+      <dt>Impact</dt>
+      <dd>The anon key is public by design. With RLS off, a single request returns every row in every
+        table. Even after the service_role key is fixed, user data stays world-readable.</dd>
+      <dt>Evidence</dt>
+      <dd><div class="ev">GET /rest/v1/profiles?select=* → 1,284 rows returned to an anonymous request</div></dd>
+      <dt>Fix</dt>
+      <dd><div class="fix">Enable RLS on all 7 tables, write per-user policies, then re-run the anonymous
+        request and confirm it returns zero rows. <b>Time: 1 hour.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="finding blocker">
+    <div class="f-head">
+      <span class="tag blocker">Blocker</span>
+      <p class="f-title">"Pro" is granted by a client-side localStorage flag</p>
+      <span class="f-num">04</span>
+    </div>
+    <dl class="f-row">
+      <dt>Found</dt>
+      <dd><code>src/hooks/usePro.ts</code> — <code>isPro</code> reads <code>localStorage.getItem('isPro')</code>.</dd>
+      <dt>Impact</dt>
+      <dd>Two clicks in DevTools unlocks every paid feature permanently, on any account. Your revenue
+        protection is a string in the browser.</dd>
+      <dt>Fix</dt>
+      <dd><div class="fix">Read entitlement from <code>subscriptions</code> server-side, enforced by an RLS
+        policy. The client may display the state; it must never be the source of it.
+        <b>Time: 45 minutes.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="finding high">
+    <div class="f-head">
+      <span class="tag high">High</span>
+      <p class="f-title">Deep links 404 on refresh</p>
+      <span class="f-num">05</span>
+    </div>
+    <dl class="f-row">
+      <dt>Found</dt>
+      <dd>Client-side routing with no rewrite in <code>vercel.json</code>. <code>/dashboard</code> returns
+        404 on a hard refresh.</dd>
+      <dt>Impact</dt>
+      <dd>Every shared link to an inner page looks broken. This is the single most common
+        "it worked in preview" complaint, and it costs you the click you paid for.</dd>
+      <dt>Fix</dt>
+      <dd><div class="fix">Add the SPA rewrite to <code>index.html</code> and hard-refresh every route in
+        the deploy checklist. <b>Time: 5 minutes.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="finding high">
+    <div class="f-head">
+      <span class="tag high">High</span>
+      <p class="f-title">AI endpoint is unauthenticated and unrate-limited</p>
+      <span class="f-num">06</span>
+    </div>
+    <dl class="f-row">
+      <dt>Found</dt>
+      <dd><code>api/coach.ts</code> proxies a model call with no session check and no per-user limit.</dd>
+      <dt>Impact</dt>
+      <dd>A single script can burn your entire monthly model budget in minutes. This is the most common
+        way a small AI app receives its first four-figure bill.</dd>
+      <dt>Fix</dt>
+      <dd><div class="fix">Require a verified session, cap requests per user per hour, and set a hard
+        spend ceiling at the provider. <b>Time: 30 minutes.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="finding high">
+    <div class="f-head">
+      <span class="tag high">High</span>
+      <p class="f-title">No error boundary — one failed request is a white screen</p>
+      <span class="f-num">07</span>
+    </div>
+    <dl class="f-row">
+      <dt>Found</dt>
+      <dd>11 async calls, 2 try/catch blocks, no error boundary at the app root.</dd>
+      <dt>Impact</dt>
+      <dd>A failed fetch takes the entire app to a blank page with no message and no retry. Support
+        tickets you cannot diagnose, and refund requests you cannot argue with.</dd>
+      <dt>Fix</dt>
+      <dd><div class="fix">Add a root error boundary, wrap the async paths, and surface a retry state
+        instead of a blank screen. <b>Time: 1 hour.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="finding medium">
+    <div class="f-head">
+      <span class="tag medium">Medium</span>
+      <p class="f-title">Schema exists only in the builder's chat, not in migrations</p>
+      <span class="f-num">08</span>
+    </div>
+    <dl class="f-row">
+      <dt>Impact</dt>
+      <dd>No environment can be rebuilt, a restore loses structure, and nobody — including you in six
+        weeks — can state the real schema with confidence.</dd>
+      <dt>Fix</dt>
+      <dd><div class="fix">Dump the schema into <code>supabase/migrations</code>, version it, apply in CI.
+        <b>Time: 30 minutes.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="finding medium">
+    <div class="f-head">
+      <span class="tag medium">Medium</span>
+      <p class="f-title">Session token in localStorage, and secrets in console logs</p>
+      <span class="f-num">09</span>
+    </div>
+    <dl class="f-row">
+      <dt>Impact</dt>
+      <dd>Any injected script reads the token and takes the account over. One log line prints an env
+        value into a third-party logging service.</dd>
+      <dt>Fix</dt>
+      <dd><div class="fix">Move the session to an httpOnly cookie; delete the log and log a redacted shape.
+        <b>Time: 40 minutes.</b></div></dd>
+    </dl>
+  </div>
+
+  <div class="rule"></div>
+
+  <h2>What happens next</h2>
+  <p class="h2sub">A realistic sequence, not the shortest possible one.</p>
+  <table>
+    <thead>
+      <tr><th>When</th><th>Work</th><th>Clears</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Day 1</td><td>Rotate the exposed keys, add the deploy rewrite, stand up CI</td><td><span class="pill-b">01</span> <span class="pill-h">05</span></td></tr>
+      <tr><td>Day 2</td><td>RLS on all 7 tables with per-user policies, verified by anonymous request</td><td><span class="pill-b">03</span></td></tr>
+      <tr><td>Day 3</td><td>Webhook signature verification + idempotent grants; entitlement moved server-side</td><td><span class="pill-b">02</span> <span class="pill-b">04</span></td></tr>
+      <tr><td>Day 4</td><td>Session checks and rate limits on the AI route; error boundary and retry states</td><td><span class="pill-h">06</span> <span class="pill-h">07</span></td></tr>
+      <tr><td>Day 5</td><td>Migrations committed, cookies and logs cleaned, live test payment, handover</td><td><span class="pill-h">08</span> <span class="pill-h">09</span></td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout">
+    <h3>Total: five working days to launch-safe</h3>
+    <p>Every blocker and every high cleared, the payment path tested end to end with a real card,
+      and the app live on a URL you can hand to a customer. Your code, your accounts, your keys —
+      I never hold them after handover.</p>
+    <div class="price"><b>$1,000</b><s>$7,500 market rate for a production pass</s></div>
+    <p style="margin:0;font-size:12.5px;color:#5b6675">Fixed price, fixed date, in writing before we
+      start. 50% to begin, 50% when it is live. The $249 you paid for this audit comes off it.</p>
+  </div>
+
+  <div class="sig">
+    <div><b style="color:#12161b">Alex Frands</b> · ShipCheck · shayan44wrgs@gmail.com</div>
+    <div>Report SC-2026-0142 · page 1 of 1</div>
+  </div>
+
+</div>
+
+</body>
+</html>
