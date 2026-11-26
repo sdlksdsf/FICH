@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ShipCheck — catch what breaks before your users do</title>
+<meta name="description" content="A fixed-scope launch audit for apps built with Lovable, Bolt, Cursor and Replit. You get the full findings report before you pay anything.">
+<meta property="og:title" content="ShipCheck — catch what breaks before your users do">
+<meta property="og:description" content="A fixed-scope launch audit for AI-built apps. See every finding before you pay.">
+<meta name="robots" content="index,follow">
+<style>
+  :root{
+    --ink:#08090c; --ink2:#0e1116; --card:#12161d; --line:#212833; --line2:#2d3745;
+    --text:#eef2f8; --muted:#9aa8bb; --dim:#6a7889;
+    --ok:#33d17a; --bad:#ff5263; --warn:#ffb020; --accent:#4c8dff; --accent2:#8b5cff;
+    --paper:#fff; --p-ink:#101419; --p-muted:#57616f; --p-line:#e2e8f1;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0; background:var(--ink); color:var(--text); line-height:1.6;
+    font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  }
+  .wrap{width:min(1040px,100% - 40px); margin:0 auto}
+  a{color:inherit}
+
+  /* nav */
+  nav{
+    position:sticky; top:0; z-index:50; backdrop-filter:blur(14px);
+    background:rgba(8,9,12,.82); border-bottom:1px solid var(--line);
+  }
+  .nav-in{display:flex; align-items:center; gap:12px; height:62px}
+  .brand{display:flex; align-items:center; gap:9px; font-weight:780; letter-spacing:-.025em; font-size:16px}
+  .mark{
+    width:27px; height:27px; border-radius:8px; display:grid; place-items:center; font-size:14px;
+    background:linear-gradient(140deg,var(--accent),var(--accent2)); box-shadow:0 4px 14px rgba(76,141,255,.35)
+  }
+  .nav-sp{flex:1}
+  .nav-link{font-size:13.5px; color:var(--muted); text-decoration:none; padding:8px 10px; border-radius:8px}
+  .nav-link:hover{color:var(--text); background:#141922}
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    border:0; border-radius:10px; cursor:pointer; text-decoration:none;
+    font-family:inherit; font-size:14.5px; font-weight:680; letter-spacing:-.01em;
+    padding:12px 20px; transition:transform .12s ease, box-shadow .18s ease, background .18s ease;
+    background:linear-gradient(140deg,var(--accent),var(--accent2)); color:#fff;
+    box-shadow:0 6px 20px rgba(76,141,255,.3);
+  }
+  .btn:hover{transform:translateY(-1px); box-shadow:0 9px 26px rgba(76,141,255,.42)}
+  .btn:active{transform:translateY(0)}
+  .btn.ghost{background:transparent; border:1px solid var(--line2); color:var(--text); box-shadow:none}
+  .btn.ghost:hover{background:#151b25; border-color:#3b4757}
+  .btn.lg{font-size:16px; padding:15px 26px; border-radius:12px}
+  .btn.sm{font-size:13px; padding:9px 15px; border-radius:9px}
+
+  /* hero */
+  header{padding:74px 0 10px; position:relative; overflow:hidden}
+  header::before{
+    content:""; position:absolute; inset:-40% 0 auto 50%; transform:translateX(-50%);
+    width:900px; height:620px; pointer-events:none;
+    background:radial-gradient(circle at 50% 50%,rgba(76,141,255,.17),transparent 62%);
+  }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:8px; font-size:12px; font-weight:720;
+    letter-spacing:.05em; text-transform:uppercase; color:#a9c3ff;
+    border:1px solid rgba(76,141,255,.32); background:rgba(76,141,255,.09);
+    padding:6px 12px; border-radius:999px; margin-bottom:22px;
+  }
+  .dot{width:6px; height:6px; border-radius:50%; background:var(--ok); box-shadow:0 0 0 3px rgba(51,209,122,.18)}
+  h1{
+    font-size:clamp(37px,5.6vw,63px); line-height:1.03; letter-spacing:-.045em;
+    font-weight:800; margin:0 0 20px; max-width:17ch;
+    background:linear-gradient(178deg,#fff 30%,#a9b7c9);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .lede{font-size:clamp(16px,2.1vw,19.5px); color:var(--muted); max-width:60ch; margin:0 0 30px}
+  .lede b{color:var(--text); font-weight:650}
+  .cta-row{display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:14px}
+  .fine{font-size:13px; color:var(--dim); margin:0}
+  .fine b{color:var(--muted); font-weight:620}
+
+  /* proof strip */
+  .strip{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line);
+    border:1px solid var(--line); border-radius:13px; overflow:hidden; margin:52px 0 0;
+  }
+  .strip div{background:var(--ink2); padding:17px 19px}
+  .strip dt{font-size:10.5px; font-weight:800; letter-spacing:.1em; text-transform:uppercase; color:var(--dim); margin-bottom:5px}
+  .strip dd{margin:0; font-size:19px; font-weight:770; letter-spacing:-.03em}
+  .strip dd span{font-size:13px; font-weight:600; color:var(--muted); letter-spacing:0}
+
+  section{padding:76px 0}
+  .sec-head{max-width:62ch; margin-bottom:34px}
+  .kicker{font-size:12px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--accent); margin:0 0 10px}
+  h2{font-size:clamp(27px,3.6vw,38px); line-height:1.14; letter-spacing:-.035em; font-weight:790; margin:0 0 12px}
+  .sec-sub{font-size:16.5px; color:var(--muted); margin:0}
+
+  .cards{display:grid; grid-template-columns:repeat(3,1fr); gap:14px}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:14px; padding:24px;
+    transition:border-color .18s ease, transform .18s ease;
+  }
+  .card:hover{border-color:var(--line2); transform:translateY(-2px)}
+  .card .ico{
+    width:36px; height:36px; border-radius:10px; display:grid; place-items:center;
+    background:#1a2130; border:1px solid var(--line2); font-size:17px; margin-bottom:15px;
+  }
+  .card h3{font-size:16.5px; letter-spacing:-.02em; margin:0 0 7px; font-weight:730}
+  .card p{margin:0; font-size:14px; color:var(--muted); line-height:1.62}
+
+  /* findings list */
+  .find{display:grid; grid-template-columns:1fr 1fr; gap:12px 18px; margin-top:8px}
+  .fi{display:flex; gap:11px; align-items:flex-start; padding:14px 16px; background:var(--card);
+      border:1px solid var(--line); border-radius:11px}
+  .sev{
+    flex:0 0 auto; font-size:9.5px; font-weight:850; letter-spacing:.08em; text-transform:uppercase;
+    padding:3px 7px; border-radius:4px; margin-top:3px; white-space:nowrap;
+  }
+  .sev.b{background:rgba(255,82,99,.13); color:#ff8a95; border:1px solid rgba(255,82,99,.3)}
+  .sev.h{background:rgba(255,176,32,.13); color:#ffc861; border:1px solid rgba(255,176,32,.3)}
+  .fi div{font-size:14px; line-height:1.5}
+  .fi b{display:block; font-weight:680; margin-bottom:2px}
+  .fi span{color:var(--muted); font-size:13px}
+
+  /* pricing */
+  .plans{display:grid; grid-template-columns:1fr 1.35fr; gap:16px; align-items:start}
+  .plan{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:28px}
+  .plan.hero-plan{
+    border-color:rgba(76,141,255,.42); background:linear-gradient(170deg,#121a29,#0f131a 62%);
+    box-shadow:0 24px 60px -28px rgba(76,141,255,.5); position:relative;
+  }
+  .badge{
+    position:absolute; top:-11px; left:28px; font-size:10.5px; font-weight:850; letter-spacing:.09em;
+    text-transform:uppercase; padding:5px 11px; border-radius:6px;
+    background:linear-gradient(140deg,var(--accent),var(--accent2)); color:#fff;
+  }
+  .plan h3{font-size:15px; letter-spacing:-.01em; margin:0 0 4px; font-weight:750}
+  .plan .desc{font-size:13.5px; color:var(--muted); margin:0 0 18px; min-height:40px}
+  .amt{display:flex; align-items:baseline; gap:9px; margin-bottom:4px}
+  .amt b{font-size:41px; letter-spacing:-.045em; font-weight:800; line-height:1}
+  .amt s{color:var(--dim); font-size:15px}
+  .amt em{font-style:normal; font-size:12.5px; color:var(--muted); font-weight:620}
+  .plan ul{list-style:none; margin:20px 0 24px; padding:0}
+  .plan li{display:flex; gap:9px; font-size:14px; color:var(--muted); padding:6px 0; line-height:1.5}
+  .plan li::before{content:"✓"; color:var(--ok); font-weight:800; flex:0 0 auto}
+  .plan li b{color:var(--text); font-weight:640}
+  .plan .or{font-size:12.5px; color:var(--dim); margin:14px 0 0; text-align:center}
+  .guarantee{font-size:12.5px; color:var(--dim); margin-top:12px; line-height:1.55}
+
+  /* steps */
+  .steps{display:grid; grid-template-columns:repeat(3,1fr); gap:22px; counter-reset:s}
+  .step{counter-increment:s; position:relative; padding-top:44px}
+  .step::before{
+    content:counter(s); position:absolute; top:0; left:0; width:32px; height:32px; border-radius:9px;
+    display:grid; place-items:center; font-size:14px; font-weight:800;
+    background:#161d29; border:1px solid var(--line2); color:#a9c3ff;
+  }
+  .step h3{font-size:16px; margin:0 0 6px; letter-spacing:-.015em; font-weight:730}
+  .step p{margin:0; font-size:14px; color:var(--muted); line-height:1.62}
+
+  /* callout */
+  .band{
+    border:1px solid var(--line); border-radius:18px; padding:40px 36px;
+    background:linear-gradient(150deg,#101724,#0b0e13 65%); text-align:center;
+  }
+  .band h2{margin-bottom:10px}
+  .band .sec-sub{margin:0 auto 26px; max-width:52ch}
+
+  footer{border-top:1px solid var(--line); padding:34px 0 46px; margin-top:20px}
+  .foot{display:flex; gap:14px; align-items:center; flex-wrap:wrap; font-size:13px; color:var(--dim)}
+  .foot a{color:var(--muted); text-decoration:none; border-bottom:1px solid var(--line2)}
+  .foot a:hover{color:var(--text)}
+
+  @media(max-width:860px){
+    .strip{grid-template-columns:1fr 1fr}
+    .cards,.steps{grid-template-columns:1fr}
+    .plans{grid-template-columns:1fr}
+    .find{grid-template-columns:1fr}
+    header{padding-top:52px}
+    section{padding:58px 0}
+    .plan.hero-plan{order:-1}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <div class="brand"><span class="mark">🛡️</span> ShipCheck</div>
+    <div class="nav-sp"></div>
+    <a class="nav-link" href="#findings">What we catch</a>
+    <a class="nav-link" href="#pricing">Pricing</a>
+    <a class="btn sm" href="#pricing">Get an audit</a>
+  </div>
+</nav>
+
+<header>
+  <div class="wrap">
+    <div class="eyebrow"><span class="dot"></span> Fixed scope · 48-hour turnaround</div>
+
+    <h1>You shipped the demo. Now it has to take money.</h1>
+
+    <p class="lede">
+      If your app was built with <b>Lovable, Bolt, Cursor, Replit or v0</b>, there are almost
+      always four or five things missing between "looks finished" and "safe to charge for".
+      A broken payment webhook. A page that 404s on refresh. An API key sitting in the
+      client bundle. <b>You find out from a customer.</b> I'll find them first.
+    </p>
+
+    <div class="cta-row">
+      <a class="btn lg" href="mailto:shayan44wrgs@gmail.com?subject=ShipCheck%20%E2%80%94%20launch%20audit&body=App%20URL%20%28and%20repo%20if%20you%20have%20it%29%3A%0A%0AWhich%20builder%20you%20used%20%28Lovable%20/%20Bolt%20/%20Cursor%20/%20Replit%20/%20other%29%3A%0A%0AWhat%20breaks%20right%20now%2C%20if%20you%20know%3A%0A%0AAnything%20I%20should%20not%20touch%3A%0A" id="cta-main">Book the $249 audit →</a>
+      <a class="btn lg ghost" href="/functions/v1/shipcheck/app">Run the free scanner</a>
+    </div>
+    <p class="fine">
+      <b>You see every finding before you pay.</b> No discovery call, no retainer, no subscription.
+    </p>
+
+    <dl class="strip">
+      <div><dt>Turnaround</dt><dd>48<span> hours</span></dd></div>
+      <div><dt>Rules checked</dt><dd>18<span> automated</span></dd></div>
+      <div><dt>Report</dt><dd>Yours<span> to keep</span></dd></div>
+      <div><dt>If nothing breaks</dt><dd>Full<span> refund</span></dd></div>
+    </dl>
+  </div>
+</header>
+
+<section id="findings">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">What actually breaks</p>
+      <h2>The same eight things, in almost every AI-built app</h2>
+      <p class="sec-sub">
+        Not theoretical. These are the failures that show up in real codebases built by
+        prompt-first tooling — and each one costs you customers, not just style points.
+      </p>
+    </div>
+
+    <div class="find">
+      <div class="fi"><span class="sev b">Blocker</span><div><b>Payments confirm nothing</b><span>The webhook fires, but no record is written. Customers get charged and get no access.</span></div></div>
+      <div class="fi"><span class="sev b">Blocker</span><div><b>Page 404s on refresh</b><span>Routing works in-app but not on a hard load, so every shared link is dead.</span></div></div>
+      <div class="fi"><span class="sev b">Blocker</span><div><b>Secrets in the browser bundle</b><span>A service-role or Stripe key compiled into client code, readable by anyone.</span></div></div>
+      <div class="fi"><span class="sev b">Blocker</span><div><b>Auth pages open to the world</b><span>Dashboard and admin routes render before the session check completes.</span></div></div>
+      <div class="fi"><span class="sev h">High</span><div><b>Env vars missing in production</b><span>Works locally, silently returns undefined once deployed.</span></div></div>
+      <div class="fi"><span class="sev h">High</span><div><b>localhost left in shipped code</b><span>Redirects and API calls pointing at a machine that isn't there.</span></div></div>
+      <div class="fi"><span class="sev h">High</span><div><b>No error handling on writes</b><span>A failed insert looks like success, so data vanishes quietly.</span></div></div>
+      <div class="fi"><span class="sev h">High</span><div><b>Row-level security off</b><span>Every row in every table readable by any authenticated user.</span></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="pricing">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">Pricing</p>
+      <h2>Two ways in. Both fixed-price.</h2>
+      <p class="sec-sub">One client at a time on the Launch Pass, because it's hands-on work.</p>
+    </div>
+
+    <div class="plans">
+      <div class="plan">
+        <h3>Pre-Launch Audit</h3>
+        <p class="desc">The report. Everything that will bite you, ranked, with the fix for each one.</p>
+        <div class="amt"><b>$249</b> <em>one-off</em></div>
+        <ul>
+          <li>All findings on <b>your</b> codebase, not a sample</li>
+          <li>Severity-ranked, with reproduction steps</li>
+          <li>A specific fix written for each finding</li>
+          <li>Delivered in <b>48 hours</b></li>
+          <li>Yours to keep, use with any developer</li>
+        </ul>
+        <a class="btn ghost" href="mailto:shayan44wrgs@gmail.com?subject=ShipCheck%20%E2%80%94%20launch%20audit&body=App%20URL%20%28and%20repo%20if%20you%20have%20it%29%3A%0A%0AWhich%20builder%20you%20used%20%28Lovable%20/%20Bolt%20/%20Cursor%20/%20Replit%20/%20other%29%3A%0A%0AWhat%20breaks%20right%20now%2C%20if%20you%20know%3A%0A%0AAnything%20I%20should%20not%20touch%3A%0A" style="width:100%">Start the audit</a>
+        <p class="guarantee">If the report contains nothing you didn't already know, I refund it.</p>
+      </div>
+
+      <div class="plan hero-plan">
+        <span class="badge">1 slot · this week</span>
+        <h3>5-Day Launch Pass</h3>
+        <p class="desc">The report, plus I do the work. You go from "demo" to "can take a payment" in a week.</p>
+        <div class="amt"><b>$1,000</b> <em>fixed &middot; 50/50</em></div>
+        <ul>
+          <li>Everything in the Pre-Launch Audit</li>
+          <li><b>I fix the blockers myself</b> — payments, auth, routing, RLS</li>
+          <li>Production env and deploy verified working</li>
+          <li>Daily written update, no meetings required</li>
+          <li>Walkthrough at the end so you own it</li>
+          <li>Your <b>$249 audit fee credits back</b> in full</li>
+        </ul>
+        <a class="btn" href="mailto:shayan44wrgs@gmail.com?subject=ShipCheck%20%E2%80%94%20launch%20audit&body=App%20URL%20%28and%20repo%20if%20you%20have%20it%29%3A%0A%0AWhich%20builder%20you%20used%20%28Lovable%20/%20Bolt%20/%20Cursor%20/%20Replit%20/%20other%29%3A%0A%0AWhat%20breaks%20right%20now%2C%20if%20you%20know%3A%0A%0AAnything%20I%20should%20not%20touch%3A%0A" style="width:100%">Claim the slot →</a>
+        <p class="or">50% to start, 50% when it works. Not before.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="kicker">How it runs</p>
+      <h2>No kickoff call. No weekly sync.</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <h3>Send me the link</h3>
+        <p>The repo and the live URL. That's the whole intake — no questionnaire, no onboarding sequence.</p>
+      </div>
+      <div class="step">
+        <h3>You get the findings</h3>
+        <p>48 hours later: a ranked report with real evidence from your code. Read it before deciding to spend anything else.</p>
+      </div>
+      <div class="step">
+        <h3>Fix it, or I do</h3>
+        <p>Take the report to your own developer, or hand me the Launch Pass and I'll clear the blockers this week.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:0">
+  <div class="wrap">
+    <div class="band">
+      <h2>See what a real report looks like</h2>
+      <p class="sec-sub">
+        A complete, unedited audit of a Lovable-built app — nine findings, severity ratings,
+        and the five-day plan. No email required to read it.
+      </p>
+      <div class="cta-row" style="justify-content:center">
+        <a class="btn" href="/functions/v1/shipcheck/sample-report.html">Open the sample report</a>
+        <a class="btn ghost" href="/functions/v1/shipcheck/app">Scan your app free</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot">
+    <div class="brand" style="font-size:14px"><span class="mark" style="width:22px;height:22px;font-size:11px">🛡️</span> ShipCheck</div>
+    <div style="flex:1"></div>
+    <span>Built by Alex Frands</span>
+    <a href="mailto:shayan44wrgs@gmail.com">shayan44wrgs@gmail.com</a>
+  </div>
+</footer>
+
+</body>
+</html>
